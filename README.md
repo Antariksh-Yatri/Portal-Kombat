@@ -84,11 +84,10 @@ For platform-specific builds, refer to the documentation in each subfolder.
 ## Roadmap
 - [ ] android
 - [ ] macos
-- [ ] ios/ipados
 - [ ] windows
 - [ ] linux
-- [ ] Support for additional authentication methods (OAuth, QR codes)
-- [ ] iCloud/Google Drive sync for network profiles
+- [ ] ios/ipados
+<!-- - [ ] iCloud/Google Drive sync for network profiles -->
 - [ ] CLI version for automation across platforms
 
 ## License
