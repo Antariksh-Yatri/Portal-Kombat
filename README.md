@@ -1,7 +1,7 @@
-# WiFi AutoLogin
+# Portal Kombat
 
 ## Overview
-WiFi AutoLogin is a cross-platform background service with a minimal UI that automates logging into captive portal networks. The app supports Android, iOS, macOS, Linux, and Windows, leveraging platform-specific technologies for seamless authentication.
+Portal Kombat  is a cross-platform background service with a minimal UI that automates logging into captive portal networks. The app supports Android, iOS, macOS, Linux, and Windows, leveraging platform-specific technologies for seamless authentication.
 
 ## Features
 - Automatic login to configured WiFi networks with captive portals
@@ -84,11 +84,10 @@ For platform-specific builds, refer to the documentation in each subfolder.
 ## Roadmap
 - [ ] android
 - [ ] macos
-- [ ] ios/ipados
 - [ ] windows
 - [ ] linux
-- [ ] Support for additional authentication methods (OAuth, QR codes)
-- [ ] iCloud/Google Drive sync for network profiles
+- [ ] ios/ipados
+<!-- - [ ] iCloud/Google Drive sync for network profiles -->
 - [ ] CLI version for automation across platforms
 
 ## License
