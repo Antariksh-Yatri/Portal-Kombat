@@ -1,13 +1,13 @@
 //
-//  wifiloginUITests.swift
-//  wifiloginUITests
+//  wifiautologinUITests.swift
+//  wifiautologinUITests
 //
-//  Created by Arjun Manjunath on 25/03/25.
+//  Created by Arjun Manjunath on 06/08/25.
 //
 
 import XCTest
 
-final class wifiloginUITests: XCTestCase {
+final class wifiautologinUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -33,11 +33,9 @@ final class wifiloginUITests: XCTestCase {
 
     @MainActor
     func testLaunchPerformance() throws {
-        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
-            // This measures how long it takes to launch your application.
-            measure(metrics: [XCTApplicationLaunchMetric()]) {
-                XCUIApplication().launch()
-            }
+        // This measures how long it takes to launch your application.
+        measure(metrics: [XCTApplicationLaunchMetric()]) {
+            XCUIApplication().launch()
         }
     }
 }
