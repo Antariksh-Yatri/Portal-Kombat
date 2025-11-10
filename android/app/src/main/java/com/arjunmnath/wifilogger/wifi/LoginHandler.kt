@@ -110,7 +110,7 @@ class LoginHandler() {
         val generateCaptive = "http://connectivitycheck.gstatic.com/generate_204"
         Log.d("handleCaptivePortal", "Captive portal request sent")
         val captivePortalHTML = get(generateCaptive)
-        Log.d("handleCaptivePortal", captivePortalHTML.toString())
+       Log.d("handleCaptivePortal", captivePortalHTML.toString())
         val portalURL = extractLoginPortalURL(captivePortalHTML.toString())
         if (portalURL == null) {
             return LoginState.LOGGEDIN

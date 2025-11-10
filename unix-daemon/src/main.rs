@@ -1,56 +1,76 @@
-use daemonize::Daemonize;
-use log::{error, info};
-use std::fs::File;
-use std::io::Write;
-use std::{thread, time::Duration};
+mod captive;
+mod configs;
+mod platform;
 
-enum LoginState {
-    CONNECTED,
-    LOGGEDIN,
-    LOGGEDOUT,
-    MAXCONCURRENT,
-    AUTHFAILED,
-    UNKNOWN,
-    CREDUNAVAILABLE,
-    WIFINOTCONNECTED,
-    AVAILABLE,
-}
-fn main() {
+use anyhow::Result;
+use captive::CaptiveDetector;
+use configs::Config;
+use log::{error, info, warn};
+use platform::NetworkManager;
+use std::env;
+use std::fs;
+use std::path::PathBuf;
+use tokio::time::{Duration, sleep};
+
+#[cfg(target_os = "macos")]
+use platform::macos::MacOSNetworkManager;
+
+#[tokio::main]
+async fn main() -> Result<()> {
     env_logger::init();
+    info!("starting wifi-captive-daemon");
 
-    // Daemonize the process
-    let daemonize = Daemonize::new()
-        .pid_file("/tmp/rust_daemon.pid") // File to store the daemon's PID
-        .chown_pid_file(true)
-        .umask(0o027) // Set file permissions
-        .working_directory("/tmp")
-        .exit_action(|| info!("Daemon exited."))
-        .privileged_action(|| info!("Daemon started."));
+    let home_str = env::var("HOME").expect("HOME environment variable not set.");
+    let mut config_path = PathBuf::from(home_str);
+    config_path.push(".portal-kombat.toml");
+    let config_string = fs::read_to_string(config_path).expect("Failed to read config file.");
+    let config: Config = toml::from_str(&config_string).expect("Failed to parse config file.");
 
-    match daemonize.start() {
-        Ok(_) => {
-            info!("Daemon started successfully!");
+    #[cfg(target_os = "macos")]
+    let nm: Box<dyn NetworkManager> = Box::new(MacOSNetworkManager::new());
+    #[cfg(not(target_os = "macos"))]
+    compile_error!("No network manager implemented for this platform yet");
 
-            // Your daemon's main loop
-            loop {
-                // Write some activity to a log file
-                if let Err(e) = write_log("Daemon is running...") {
-                    error!("Error writing log: {}", e);
-                }
+    let detector = CaptiveDetector::new(10);
+    let poll_interval = Duration::from_secs(1);
 
-                // Sleep for a while before repeating
-                thread::sleep(Duration::from_secs(60));
-            }
+    loop {
+        if let Err(e) = check_once(&*nm, &detector).await {
+            error!("check failed: {:?}", e);
         }
-        Err(e) => {
-            eprintln!("Failed to start daemon: {}", e);
-            std::process::exit(1);
-        }
+        sleep(poll_interval).await;
     }
 }
 
-fn write_log(message: &str) -> Result<(), std::io::Error> {
-    let mut file = File::create("/tmp/daemon.log")?;
-    writeln!(file, "{}", message)?;
+async fn check_once(nm: &dyn NetworkManager, detector: &CaptiveDetector) -> Result<()> {
+    match nm.current_ssid() {
+        Ok(Some(ssid)) => {
+            info!("connected SSID: {}", ssid);
+            let (is_captive, redirect) = detector.probe().await?;
+            if is_captive {
+                info!("captive portal detected");
+                if let Some(url) = redirect {
+                    println!("opening redirect URL: {}", url);
+                    if let Err(e) = nm.open_url(&url) {
+                        warn!("failed to open url {}: {:?}", url, e);
+                    }
+                } else {
+                    println!("no redirect captured; opening generic captive portal URL");
+                    // Some captive portals don't redirect; open probe URL to trigger captive UI
+                    if let Err(e) = nm.open_url(&detector.probe_url) {
+                        warn!("failed to open probe url: {:?}", e);
+                    }
+                }
+            } else {
+                println!("no captive portal");
+            }
+        }
+        Ok(None) => {
+            println!("not connected to Wi-Fi");
+        }
+        Err(e) => {
+            println!("failed to get SSID: {:?}", e);
+        }
+    }
     Ok(())
 }

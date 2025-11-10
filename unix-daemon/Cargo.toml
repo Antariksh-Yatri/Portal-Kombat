@@ -1,9 +1,19 @@
 [package]
-name = "wifiautologin-daemon"
+name = "wifi-captive-daemon"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-daemonize = "0.4.0"
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "time"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+anyhow = "1.0"
+thiserror = "1.0"
 log = "0.4"
-env_logger = "0.9"
+env_logger = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+regex = "1.12.2"
+toml = "0.9.8"
+
+
+[package.metadata.bundle]
+NSLocationWhenInUseUsageDescription = "Used to read the Wi-Fi network name (SSID)."

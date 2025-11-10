@@ -11,7 +11,7 @@ import SwiftUI
 struct wifiautologinApp: App {
     var body: some Scene {
         MenuBarExtra {
-            PopupView()
+            WiFiCardView()
         } label: {
             Label("Wifi Autologin", systemImage: "wifi.router.fill")
         }.menuBarExtraStyle(.window)
