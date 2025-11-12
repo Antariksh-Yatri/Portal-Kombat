@@ -2,12 +2,15 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct Profile {
-    rollno: String,
-    password: String,
+    pub rollno: String,
+    pub password: String,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    refresh: u32,
-    profile: Profile,
+    pub refresh: u64,
+    pub profile: Profile,
+    pub timeouts: u64,
 }
+
+
