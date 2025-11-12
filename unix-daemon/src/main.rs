@@ -7,7 +7,7 @@ mod platform;
 use anyhow::Result;
 use configs::Config;
 use fsm::Machine;
-use log::{error, info, warn};
+use log::info;
 use std::env;
 use std::fs;
 use std::path::PathBuf;

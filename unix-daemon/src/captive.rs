@@ -1,4 +1,4 @@
-use log::{error, info, warn};
+use log::error;
 use regex::Regex;
 use reqwest::blocking::{self, Client};
 use scraper::{Html, Selector};
@@ -85,16 +85,16 @@ impl Captive {
                 && let Some(login_status_page_html) = login_page_status.1
             {
                 if let Some(_) = self.success_regex.captures(&login_status_page_html) {
-                    return Event::SUCCESS;
+                    return Event::Success;
                 } else if let Some(_) = self.auth_failed_regex.captures(&login_status_page_html) {
-                    return Event::WRONG_CREDS;
+                    return Event::WrongCreds;
                 } else if let Some(_) = self.max_concurrent_regex.captures(&login_status_page_html)
                 {
-                    return Event::MAX_CONCURRENT;
+                    return Event::MaxConcurrent;
                 }
             }
         }
-        Event::UNKNOWN
+        Event::Unknown
     }
 
     fn handle_login_page(&mut self, body: &str, profile: &Profile) -> (bool, Option<String>) {

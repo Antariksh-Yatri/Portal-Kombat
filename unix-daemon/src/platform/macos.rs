@@ -1,5 +1,5 @@
 use crate::platform::NetworkManager;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::process::Command;
 use std::str;
 

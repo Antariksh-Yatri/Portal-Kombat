@@ -22,7 +22,7 @@ trait State: Any {
 }
 
 struct Idle;
-struct Wifi_On;
+struct WifiOn;
 struct OnLoginPage;
 // struct Notify;
 
@@ -32,7 +32,7 @@ impl State for Idle {
     }
     fn handle(&mut self, _ctx: &mut Context) -> Option<Box<dyn State>> {
         match _ctx.nm.is_wifi_on() {
-            Ok(true) => return Some(Box::new(Wifi_On)),
+            Ok(true) => return Some(Box::new(WifiOn)),
             Ok(false) => return Some(Box::new(Idle)),
             _ => None,
         }
@@ -41,7 +41,7 @@ impl State for Idle {
         self
     }
 }
-impl State for Wifi_On {
+impl State for WifiOn {
     fn name(&self) -> &'static str {
         "Wifi On"
     }
@@ -66,18 +66,16 @@ impl State for OnLoginPage {
 
     fn handle(&mut self, _ctx: &mut Context) -> Option<Box<dyn State>> {
         match _ctx.captive.login(&_ctx.config.profile) {
-            Event::SUCCESS => Some(Box::new(Idle)),
-            Event::MAX_CONCURRENT => Some(Box::new(Idle)),
-            Event::WRONG_CREDS => Some(Box::new(Idle)),
-            Event::UNKNOWN => Some(Box::new(Idle)),
-            _ => None,
+            Event::Success => Some(Box::new(Idle)),
+            Event::MaxConcurrent => Some(Box::new(Idle)),
+            Event::WrongCreds => Some(Box::new(Idle)),
+            Event::Unknown => Some(Box::new(Idle)),
         }
     }
 
     fn as_any(&self) -> &dyn Any {
         self
     }
-
 }
 
 pub struct Machine {
