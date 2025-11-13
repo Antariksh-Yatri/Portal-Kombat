@@ -4,11 +4,11 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.example.wifidaemon</string>
+  <string>com.arjunmnath.portalkombatd</string>
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/bin/wifi-captive-daemon</string>
+    <string>/usr/local/bin/portalkombatd</string>
   </array>
 
   <key>RunAtLoad</key>
@@ -18,8 +18,8 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/var/log/wifi-captive-daemon.log</string>
+  <string>/var/log/portalkombatd.log</string>
   <key>StandardErrorPath</key>
-  <string>/var/log/wifi-captive-daemon.err</string>
+  <string>/var/log/portalkombatd.err</string>
 </dict>
 </plist>

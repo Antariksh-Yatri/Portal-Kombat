@@ -1,0 +1,12 @@
+[Unit]
+Description=WiFi Captive Portal Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/portalkombatd
+Restart=always
+StandardOutput=append:/var/log/portalkombatd.log
+StandardError=append:/var/log/portalkombatd.err
+
+[Install]
+WantedBy=multi-user.target

@@ -913,6 +913,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
+name = "portalkombatd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "log",
+ "regex",
+ "reqwest",
+ "scraper",
+ "serde",
+ "thiserror",
+ "tokio",
+ "toml",
+]
+
+[[package]]
 name = "potential_utf"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1746,22 +1762,6 @@ name = "webpki-roots"
 version = "0.25.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
-
-[[package]]
-name = "wifi-captive-daemon"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "env_logger",
- "log",
- "regex",
- "reqwest",
- "scraper",
- "serde",
- "thiserror",
- "tokio",
- "toml",
-]
 
 [[package]]
 name = "winapi-util"

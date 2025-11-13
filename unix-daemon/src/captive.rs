@@ -1,4 +1,4 @@
-use log::error;
+use log::{debug, error};
 use regex::Regex;
 use reqwest::blocking::{self, Client};
 use scraper::{Html, Selector};
@@ -102,7 +102,7 @@ impl Captive {
         submission_data.insert(String::from("username"), profile.rollno.clone());
         submission_data.insert(String::from("password"), profile.password.clone());
         let magics = self.extract_magic(body, &mut submission_data);
-        println!("{:#?}", magics);
+        debug!("extracted magic tokens: {:#?}", magics);
         let domain_re = Regex::new("http?://([^/]+)").unwrap();
         if let Some(protal_domain) = domain_re.captures(&self.portal_url) {
             match self

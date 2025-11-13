@@ -1,5 +1,5 @@
 [package]
-name = "wifi-captive-daemon"
+name = "portalkombatd"
 version = "0.1.0"
 edition = "2024"
 

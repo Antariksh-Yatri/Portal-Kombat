@@ -4,7 +4,6 @@ mod event;
 mod fsm;
 mod platform;
 
-use anyhow::Result;
 use configs::Config;
 use fsm::Machine;
 use log::info;
@@ -14,7 +13,7 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
-fn main() -> Result<()> {
+fn main() {
     env_logger::init();
     info!("starting wifi-captive-daemon");
 
