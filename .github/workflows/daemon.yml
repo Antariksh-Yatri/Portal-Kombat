@@ -1,4 +1,4 @@
-name: Build & Release Unix Daemon
+name: Build & Release Daemon
 
 on:
   push:
@@ -20,25 +20,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          include:
+        include:
           - os: linux
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            use_cross: false
-            ext: ""
-          - os: linux
-            runs-on: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            use_cross: true
-            ext: ""
-          - os: macos
-            runs-on: macos-latest
-            target: x86_64-apple-darwin
-            use_cross: false
-            ext: ""
-          - os: macos
-            runs-on: macos-latest
-            target: aarch64-apple-darwin
             use_cross: false
             ext: ""
           - os: windows
@@ -46,24 +31,23 @@ jobs:
             target: x86_64-pc-windows-msvc
             use_cross: false
             ext: .exe
-          - os: windows
-            runs-on: windows-latest
-            target: aarch64-pc-windows-msvc
-            use_cross: false
-            ext: .exe
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Prepare release dir
         run: |
           rm -rf ${{ env.RELEASE_DIR }} || true
           mkdir -p ${{ env.RELEASE_DIR }}
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
       - name: Add target (if needed)
         run: |
           rustup target add ${{ matrix.target }} || true
@@ -71,90 +55,59 @@ jobs:
       - name: Setup platform toolchain (Windows/MSVC / macOS specifics)
         if: matrix.os == 'windows'
         run: |
-          echo "On Windows ensure Visual Studio Build Tools / MSVC are available on runner (windows-latest usually has them)."
-      - name: Install cross (for linux aarch64 builds)
-        if: matrix.use_cross == 'true'
-        run: |
-          cargo install cross --version 0.2.1 || true
-      - name: Build (cross or native)
+          echo "Windows runner should already include MSVC/Build Tools on windows-latest."
+
+      - name: Build (native)
         id: build-step
         run: |
           set -e
           echo "Building target: ${{ matrix.target }} on ${{ matrix.runs-on }} (use_cross=${{ matrix.use_cross }})"
-          if [ "${{ matrix.use_cross }}" = "true" ]; then
-            # cross will use QEMU and Docker to cross-build many targets on x86 runners
-            cross build --release --target ${{ matrix.target }}
-            ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}"
-          else
-            if [ "${{ matrix.os }}" = "windows" ]; then
-              # On windows runner, use cargo directly (MSVC toolchain present on runner)
-              cargo build --release --target ${{ matrix.target }}
-            else
-              # macOS & linux native build
-              cargo build --release --target ${{ matrix.target }}
-            fi
-            ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
-          fi
+          cargo build --release --target ${{ matrix.target }}
+          ls build/release
+          ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
           echo "artifact_path=${ART_PATH}" >> $GITHUB_OUTPUT
-
-      - name: Package artifact
-        run: |
-          ART="${{ steps.build-step.outputs.artifact_path }}"
-          echo "Collected build artifact: ${ART}"
-          if [ ! -f "${ART}" ]; then
-            echo "ERROR: expected artifact not found: ${ART}"
-            exit 2
-          fi
-          # create a platform-labelled archive for release
-          ARCHIVE_NAME="${{ env.BINARY_NAME }}-${{ matrix.target }}.tar.gz"
-          mkdir -p tmp_pkg
-          cp "${ART}" tmp_pkg/
-          # include optional README/config or version if you want
-          tar -czf "${{ env.RELEASE_DIR }}/${ARCHIVE_NAME}" -C tmp_pkg "$(basename ${ART})"
-          rm -rf tmp_pkg
-          echo "Wrote ${{ env.RELEASE_DIR }}/${ARCHIVE_NAME}"
-
+          
       - name: Upload artifact for job
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY_NAME }}-${{ matrix.target }}
-          path: ${{ env.RELEASE_DIR }}/*
+          path: ${{ steps.build-step.outputs.artifact_path }}
+
 
   publish_release:
-      name: Create Release and attach artifacts
-      needs: build
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-      steps:
-        - name: Download all build artifacts
-          uses: actions/download-artifact@v4
-          with:
-            path: artifacts_download
-  
-        - name: Prepare release file list
-          run: |
-            ls -la artifacts_download
-            mkdir -p release_upload
-            # flatten and rename to a predictable pattern
-            for f in artifacts_download/*/*; do
-              cp "$f" "release_upload/$(basename $f)"
-            done
-            ls -la release_upload
-  
-        - name: Create GitHub Release
-          id: create_release
-          uses: softprops/action-gh-release@v2
-          with:
-            tag_name: ${{ github.ref_name || github.sha }}
-            name: Release ${{ github.ref_name || github.sha }}
-            body: "Automated build artifacts"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-        - name: Upload artifacts to release
-          uses: softprops/action-gh-release@v2
-          with:
-            files: release_upload/*
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    name: Create Release and attach artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts_download
+
+      - name: Prepare release file list
+        run: |
+          ls -la artifacts_download
+          mkdir -p release_upload
+          for f in artifacts_download/*/*; do
+            cp "$f" "release_upload/$(basename $f)"
+          done
+          ls -la release_upload
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || github.sha }}
+          name: Release ${{ github.ref_name || github.sha }}
+          body: "Automated build artifacts"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_upload/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
