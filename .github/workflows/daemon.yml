@@ -60,6 +60,7 @@ jobs:
       - name: Build (native)
         id: build-step
         run: |
+          cd daemon
           set -e
           echo "Building target: ${{ matrix.target }} on ${{ matrix.runs-on }} (use_cross=${{ matrix.use_cross }})"
           cargo build --release --target ${{ matrix.target }}
