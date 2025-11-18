@@ -47,23 +47,23 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+          
+      - name: Install cross
+        run: |
+          cargo install cross --version 0.2.1
 
       - name: Add target (if needed)
         run: |
           rustup target add ${{ matrix.target }} || true
 
-      - name: Setup platform toolchain (Windows/MSVC / macOS specifics)
-        if: matrix.os == 'windows'
-        run: |
-          echo "Ensuring Visual Studio Build Tools are available"
-          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet --norestart"
-      - name: Build (native)
+      - name: Build (using cross)
         id: build-step
         run: |
           cd daemon
           set -e
-          echo "Building target: ${{ matrix.target }} on ${{ matrix.runs-on }} (use_cross=${{ matrix.use_cross }})"
-          cargo build --release --target ${{ matrix.target }}
+          echo "Building target: ${{ matrix.target }} using cross"
+          cross build --release --target ${{ matrix.target }}
+          ls target
           ls target/release
           ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
           echo "artifact_path=${ART_PATH}" >> $GITHUB_OUTPUT
