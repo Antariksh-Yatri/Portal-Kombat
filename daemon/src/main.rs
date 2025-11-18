@@ -16,7 +16,6 @@ use std::time::Duration;
 fn main() {
     env_logger::init();
     info!("starting wifi-captive-daemon");
-
     let home_str = env::var("HOME").expect("HOME environment variable not set.");
     let mut config_path = PathBuf::from(home_str);
     config_path.push(".portal-kombat.toml");

@@ -11,6 +11,9 @@ use crate::platform::macos::MacOSNetworkManager;
 #[cfg(target_os = "linux")]
 use crate::platform::linux::LinuxNetworkManager;
 
+#[cfg(target_os = "windows")]
+use crate::platform::windows::WindowsNetworkManager;
+
 struct Context {
     pub config: Config,
     pub nm: Box<dyn NetworkManager>,
@@ -107,8 +110,15 @@ impl Machine {
             },
             state: Box::new(Idle),
         };
-        #[cfg(not(target_os = "macos"))]
-        compile_error!("No network manager implemented for this platform yet")
+        #[cfg(target_os = "windows")]
+        return Self {
+            _ctx: Context {
+                captive: Captive::new(config.timeouts),
+                config: config,
+                nm: Box::new(WindowsNetworkManager::new()),
+            },
+            state: Box::new(Idle),
+        };
     }
 
     pub fn reset(&mut self) {
@@ -117,13 +127,13 @@ impl Machine {
     }
 
     pub fn dispatch(&mut self) {
-        // print!("{} -> ", self.state.name());
+        print!("{} -> ", self.state.name());
         if let Some(mut new_state) = self.state.handle(&mut self._ctx) {
             self.state.on_exit(&mut self._ctx);
             new_state.on_enter(&mut self._ctx);
             self.state = new_state;
             if self.state.as_any().is::<Idle>() {
-                // println!("end;");
+                println!("end;");
                 return;
             }
             self.dispatch();
