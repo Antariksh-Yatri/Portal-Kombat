@@ -55,8 +55,8 @@ jobs:
       - name: Setup platform toolchain (Windows/MSVC / macOS specifics)
         if: matrix.os == 'windows'
         run: |
-          echo "Windows runner should already include MSVC/Build Tools on windows-latest."
-
+          echo "Ensuring Visual Studio Build Tools are available"
+          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet --norestart"
       - name: Build (native)
         id: build-step
         run: |
@@ -64,7 +64,7 @@ jobs:
           set -e
           echo "Building target: ${{ matrix.target }} on ${{ matrix.runs-on }} (use_cross=${{ matrix.use_cross }})"
           cargo build --release --target ${{ matrix.target }}
-          ls build/release
+          ls target/release
           ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
           echo "artifact_path=${ART_PATH}" >> $GITHUB_OUTPUT
           
