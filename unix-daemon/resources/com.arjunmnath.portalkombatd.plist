@@ -18,8 +18,21 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/var/log/portalkombatd.log</string>
+  <string>/tmp/portalkombatd.log</string>
   <key>StandardErrorPath</key>
-  <string>/var/log/portalkombatd.err</string>
+  <string>/tmp/portalkombatd.err</string>
+
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>/Users/arjunmnath</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/usr/local/bin</string>
+  
 </dict>
 </plist>

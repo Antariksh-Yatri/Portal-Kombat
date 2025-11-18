@@ -9,7 +9,7 @@ impl MacOSNetworkManager {
     pub fn new() -> Self {
         Self
     }
-    fn _get_wifi_device(&self) -> Result<String> {
+    fn _get_adapter_status(&self) -> Result<String> {
         let output = Command::new("networksetup")
             .arg("-listallhardwareports")
             .output()?;
@@ -37,7 +37,7 @@ impl MacOSNetworkManager {
 
 impl NetworkManager for MacOSNetworkManager {
     fn is_adapater_on(&self) -> Result<bool> {
-        match self._get_wifi_device() {
+        match self._get_adapter_status() {
             Ok(dev) => {
                 let output = Command::new("networksetup")
                     .arg("-getairportpower")
