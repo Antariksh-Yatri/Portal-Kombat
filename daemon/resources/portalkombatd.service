@@ -1,12 +1,23 @@
 [Unit]
-Description=WiFi Captive Portal Daemon
+Description=Portal Kombat Daemon
 After=network.target
 
 [Service]
+Type=simple
 ExecStart=/usr/local/bin/portalkombatd
+WorkingDirectory=/usr/local/bin
+
+# Environment
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+Environment=HOME=/home/arjunmnath
+
+# Logging
+StandardOutput=append:/tmp/portalkombatd.log
+StandardError=append:/tmp/portalkombatd.err
+
+# RunAtLoad + KeepAlive
 Restart=always
-StandardOutput=append:/var/log/portalkombatd.log
-StandardError=append:/var/log/portalkombatd.err
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
