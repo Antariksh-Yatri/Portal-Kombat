@@ -15,65 +15,61 @@ env:
 
 jobs:
   build:
-    name: Build for multiple OS/arches
-    runs-on: ubuntu-latest
+    name: Build for ${{ matrix.target }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: linux
+          - target: x86_64-unknown-linux-gnu
             runs-on: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            use_cross: false
+            use_cross: true
             ext: ""
-          - os: windows
+          - target: x86_64-pc-windows-msvc
             runs-on: windows-latest
-            target: x86_64-pc-windows-msvc
             use_cross: false
             ext: .exe
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Prepare release dir
-        run: |
-          rm -rf ${{ env.RELEASE_DIR }} || true
-          mkdir -p ${{ env.RELEASE_DIR }}
-
+      
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          
-      - name: Install cross
-        run: |
-          cargo install cross --version 0.2.1
-
-      - name: Add target (if needed)
-        run: |
-          rustup target add ${{ matrix.target }} || true
-
-      - name: Build (using cross)
-        id: build-step
+          targets: ${{ matrix.target }}
+      
+      - name: Install cross (Linux only)
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+      
+      - name: Build binary
         run: |
           cd daemon
-          set -e
-          echo "Building target: ${{ matrix.target }} using cross"
-          cross build --release --target ${{ matrix.target }}
-          ls target
-          ls target/release
-          ART_PATH="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
-          echo "artifact_path=${ART_PATH}" >> $GITHUB_OUTPUT
-          
-      - name: Upload artifact for job
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+        shell: bash
+      
+      - name: Prepare artifact
+        run: |
+          mkdir -p upload
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp daemon/target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }} upload/
+          else
+            cp daemon/target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }} upload/
+          fi
+          mv upload/${{ env.BINARY_NAME }}${{ matrix.ext }} upload/${{ env.BINARY_NAME }}-${{ matrix.target }}${{ matrix.ext }}
+        shell: bash
+      
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY_NAME }}-${{ matrix.target }}
-          path: ${{ steps.build-step.outputs.artifact_path }}
-
+          path: upload/${{ env.BINARY_NAME }}-${{ matrix.target }}${{ matrix.ext }}
+          if-no-files-found: error
 
   publish_release:
     name: Create Release and attach artifacts
@@ -81,34 +77,34 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts_download
-
-      - name: Prepare release file list
+      
+      - name: Prepare release files
         run: |
-          ls -la artifacts_download
           mkdir -p release_upload
-          for f in artifacts_download/*/*; do
-            cp "$f" "release_upload/$(basename $f)"
-          done
+          find artifacts_download -type f -exec cp {} release_upload/ \;
           ls -la release_upload
-
+      
       - name: Create GitHub Release
-        id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || github.sha }}
-          name: Release ${{ github.ref_name || github.sha }}
-          body: "Automated build artifacts"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifacts to release
-        uses: softprops/action-gh-release@v2
-        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Automated Release
+            
+            Built binaries for:
+            - Linux x86_64
+            - Windows x86_64
+            
+            Download the appropriate binary for your platform below.
           files: release_upload/*
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
