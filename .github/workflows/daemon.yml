@@ -119,3 +119,45 @@ jobs:
           name: ${{ env.BINARY_NAME }}-${{ matrix.target }}
           path: upload/${{ env.BINARY_NAME }}-${{ matrix.target }}${{ matrix.ext }}
           if-no-files-found: error
+  publish_release:
+    name: Create Release and attach artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts_download
+      
+      - name: Prepare release files
+        run: |
+          mkdir -p release_upload
+          find artifacts_download -type f -exec cp {} release_upload/ \;
+          ls -la release_upload
+
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          VERSION=${GITHUB_REF##*/}
+          echo "Release version: ${VERSION}"
+          sed -n "/^## ${VERSION}/,/^## /p" CHANGES.md | sed '$d' | sed '/^##$/d' > release_notes.txt
+          if [ ! -s release_notes.txt ]; then
+            echo "No release notes found for version ${VERSION}" > release_notes.txt
+          fi
+          echo "Extracted release notes:"
+          cat release_notes.txt
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}          
+          body_path: release_notes.txt
+          files: release_upload/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
