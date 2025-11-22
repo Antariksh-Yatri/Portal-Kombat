@@ -122,7 +122,7 @@ DEFAULT_TIMEOUTS=5
 
 if [[ -f "$CONFIG_PATH" ]]; then
   printf '%s\n' "found existing config at $CONFIG_PATH"
-  read -r -p "overwrite existing config? [y/N]: " _ans
+  read -r -p "overwrite existing config? [y/N]: " _ans < /dev/tty
   _ans_lc="$(printf '%s' "$_ans" | tr '[:upper:]' '[:lower:]')"
 
   case "$_ans_lc" in
@@ -138,8 +138,8 @@ else
 fi
 
 if [[ -z "${WRITE_CONFIG_SKIP:-}" ]]; then
-read -r -p "Enter roll number: " ROLLNO
-read -r -p "Enter captive-portal password: " PASSWORD
+read -r -p "Enter roll number: " ROLLNO < /dev/tty
+read -r -p "Enter captive-portal password: " PASSWORD < /dev/tty
 echo
 
 if [[ -z "$ROLLNO" || -z "$PASSWORD" ]]; then
