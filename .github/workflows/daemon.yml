@@ -43,6 +43,12 @@ jobs:
         if: matrix.use_cross
         run: cargo install cross --git https://github.com/cross-rs/cross
       
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux' && !matrix.use_cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+      
       - name: Build binary
         run: |
           cd daemon
@@ -52,6 +58,9 @@ jobs:
             cargo build --release --target ${{ matrix.target }}
           fi
         shell: bash
+        env:
+          OPENSSL_STATIC: 1
+          OPENSSL_VENDORED: 1
       
       - name: Prepare artifact
         run: |
