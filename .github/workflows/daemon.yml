@@ -74,8 +74,6 @@ jobs:
             cargo build --release --target ${{ matrix.target }}
           fi
         shell: bash
-        env:
-          OPENSSL_VENDORED: 1
       
       - name: Prepare artifact
         run: |
