@@ -8,11 +8,25 @@ required_tools=(gh jq curl sudo)
 
 
 err() { printf '%s\n' "$*" >&2; exit 1; }
+cleanup() {
+  if [[ -n "${TMPDIR:-}" && -d "$TMPDIR" ]]; then
+    rm -rf "$TMPDIR"
+  fi
+}
+
+on_interrupt() {
+  echo ""
+  echo "Interrupted. Cleaning up and exiting."
+  cleanup
+  exit 130  
+}
 which_or_err() {
   for t in "${required_tools[@]}"; do
     command -v "$t" >/dev/null 2>&1 || err "required tool '$t' not found. install it and retry."
   done
 }
+trap on_interrupt INT
+trap cleanup EXIT
 
 get_platform() {
   case "$(uname -s)" in
@@ -52,9 +66,9 @@ arch="$(get_arch)"
 
 BIN_DIR="$(choose_bin_dir "$platform")"
 
+
 TMPDIR="$(mktemp -d /tmp/portalkombat.XXXX)"
 cd "$TMPDIR"
-
 
 
 latest_tag="$(gh release list --repo "$owner/$repo" --limit 200 --json tagName,publishedAt \
@@ -101,6 +115,48 @@ sudo mv -f "$binary_file" "$BIN_DIR/portalkombatd"
 sudo chown root:wheel "$BIN_DIR/portalkombatd"
 sudo chmod 0755 "$BIN_DIR/portalkombatd"
 echo "installed binary -> $BIN_DIR/portalkombatd"
+
+CONFIG_PATH="$HOME/.portalkombatd.toml"
+DEFAULT_REFRESH=5
+DEFAULT_TIMEOUTS=5
+
+if [[ -f "$CONFIG_PATH" ]]; then
+  printf '%s\n' "found existing config at $CONFIG_PATH"
+  read -r -p "overwrite existing config? [y/N]: " _ans
+  _ans_lc="$(printf '%s' "$_ans" | tr '[:upper:]' '[:lower:]')"
+
+  case "$_ans_lc" in
+    y|yes) 
+      ;; 
+    *) 
+      printf '%s\n' "keeping existing config; skipping write."
+      WRITE_CONFIG_SKIP=1 
+      ;;
+  esac
+else
+  printf '%s\n' "No previous config found..."
+fi
+
+if [[ -z "${WRITE_CONFIG_SKIP:-}" ]]; then
+read -r -p "Enter roll number: " ROLLNO
+read -r -p "Enter captive-portal password: " PASSWORD
+echo
+
+if [[ -z "$ROLLNO" || -z "$PASSWORD" ]]; then
+echo "roll number and password must not be empty." >&2
+exit 1
+fi
+cat > "$CONFIG_PATH" <<EOF
+refresh = ${DEFAULT_REFRESH}
+timeouts = ${DEFAULT_TIMEOUTS}
+
+[profile]
+rollno = "${ROLLNO}"
+password = "${PASSWORD}"
+EOF
+
+echo "wrote config -> $CONFIG_PATH"
+fi
 
 
 if [[ "$platform" == "linux" ]]; then
