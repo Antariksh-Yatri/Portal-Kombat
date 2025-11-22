@@ -21,14 +21,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux x86_64
           - target: x86_64-unknown-linux-gnu
             runs-on: ubuntu-latest
             use_cross: true
             ext: ""
+          # Linux ARM64
+          - target: aarch64-unknown-linux-gnu
+            runs-on: ubuntu-latest
+            use_cross: true
+            ext: ""
+          # Windows x86_64
           - target: x86_64-pc-windows-msvc
             runs-on: windows-latest
             use_cross: false
             ext: .exe
+          # Windows ARM64
+          - target: aarch64-pc-windows-msvc
+            runs-on: windows-latest
+            use_cross: false
+            ext: .exe
+          # macOS x86_64
+          - target: x86_64-apple-darwin
+            runs-on: macos-13
+            use_cross: false
+            ext: ""
+          # macOS ARM64 (Apple Silicon)
+          - target: aarch64-apple-darwin
+            runs-on: macos-latest
+            use_cross: false
+            ext: ""
     
     steps:
       - name: Checkout
