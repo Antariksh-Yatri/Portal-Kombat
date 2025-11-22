@@ -112,7 +112,11 @@ binary_file="$(ls -1 | grep -E "^portalkombatd($|.*$)" | head -n1 || true)"
 
 chmod +x "$binary_file"
 sudo mv -f "$binary_file" "$BIN_DIR/portalkombatd"
-sudo chown root:wheel "$BIN_DIR/portalkombatd"
+if [[ "$platform" == "darwin" ]]; then
+    sudo chown root:wheel "$BIN_DIR/portalkombatd"
+else
+    sudo chown root:root "$BIN_DIR/portalkombatd"
+fi
 sudo chmod 0755 "$BIN_DIR/portalkombatd"
 echo "installed binary -> $BIN_DIR/portalkombatd"
 
@@ -164,7 +168,7 @@ if [[ "$platform" == "linux" ]]; then
   svc_dest="/etc/systemd/system/portalkombatd.service"
   if curl -fL "$svc_url" -o portalkombatd.service; then
     sudo mv -f portalkombatd.service "$svc_dest"
-    sudo chown root:wheel "$svc_dest"
+    sudo chown root:root "$svc_dest"
     sudo chmod 0644 "$svc_dest"
     echo "installed systemd unit -> $svc_dest"
     if command -v systemctl >/dev/null 2>&1; then

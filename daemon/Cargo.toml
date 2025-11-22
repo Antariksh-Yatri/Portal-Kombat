@@ -17,4 +17,4 @@ scraper = "0.24.0"
 
 
 [package.metadata.bundle]
-NSLocationWhenInUseUsageDescription = "Used to read the Wi-Fi network name (SSID)."
+nslocationwheninuseusagedescription = "used to read the wi-fi network name (ssid)."
