@@ -9,7 +9,6 @@ WorkingDirectory=/usr/local/bin
 
 # Environment
 Environment=PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-Environment=HOME=/home/arjunmnath
 
 # Logging
 StandardOutput=append:/tmp/portalkombatd.log

@@ -119,6 +119,8 @@ else
 fi
 sudo chmod 0755 "$BIN_DIR/portalkombatd"
 echo "installed binary -> $BIN_DIR/portalkombatd"
+sudo semanage fcontext -a -t bin_t "$BIN_DIR/portalkombatd"
+sudo restorecon -v "$BIN_DIR/portalkombatd"
 
 CONFIG_PATH="$HOME/.portalkombatd.toml"
 DEFAULT_REFRESH=5

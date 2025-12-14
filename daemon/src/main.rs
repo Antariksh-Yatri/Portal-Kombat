@@ -14,7 +14,6 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
-
 fn main() {
     env_logger::init();
     info!("starting wifi-captive-daemon");
